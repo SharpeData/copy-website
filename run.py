@@ -9,40 +9,47 @@
 #   Compatibility     : Python3
 #   Requirements      : Beautiful Soup
 #
+#   Specification     : Parses website with only one css folder
+#   
+#
 #-----------------------------------------------------------------------
 
 import os
 from collections import defaultdict
 
-from  settings import target, destination
-from helpers import make_new_directory, arrange_css
+from  settings import src, dest
+from helpers import make_new_directory, arrange_resources, make_menu_pages
 from parse import parse_links
 
 
 if __name__ == '__main__':
     """
-    Creates destination folder, a 'names' dictionary
+    Creates dest folder, a 'names' dictionary
     and initiates recursive 'parse_links' process
     """
 
-    if os.path.exists(target):
+    if os.path.exists(src):
         print("Processing")
-        make_new_directory(destination)
+        make_new_directory(dest)
 
         # 'names' dictionary stores names of each folder to avoid conflicts
         names = defaultdict(int)
 
-        parse_links(names, target,
-                    input_path = os.path.join(target, "index.html"),
-                    output_path = destination,
+        menu_links = {}
+        make_menu_pages(src, dest, menu_links)
+
+        parse_links(names, src, menu_links,
+                    input_path = os.path.join(src, "index.html"),
+                    output_path = dest,
                     layer_level = 0,
                     recursion_depth = 3)
 
-        arrange_css(target, destination)
+
+        arrange_resources(src, dest)
         print("Successful\n")
 
     else:
-        print("\nError: Unable to find target location.\nEnter valid target path in settings.py.")
+        print("\nError: Unable to find src location.\nEnter valid src path in settings.py.")
         quit()
 else:
     """
