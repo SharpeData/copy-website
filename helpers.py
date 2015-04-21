@@ -13,6 +13,19 @@ import re
 from bs4 import BeautifulSoup
 from settings import FOLDER_PERMISSIONS
 
+file1=open("downloadablelinks.txt", "r")
+downloadablelinks=file1.readlines()
+file1.close()
+downloadablelinks = [word.rstrip("\n") for word in downloadablelinks]        
+file2=open("activedownloadablelinks.txt", "r")
+activedownloadablelinks=file2.readlines()
+file2.close()
+activedownloadablelinks = [word.rstrip("\n") for word in activedownloadablelinks]
+file3=open("activeallexternallinks.txt", "r")
+activeallexternallinks=file3.readlines()
+file3.close()
+activeallexternallinks = [word.rstrip("\n") for word in activeallexternallinks]
+
 def link_is_appropriate(link, layer_level):
     """
     Specifies which links we consider in each layer. It can be 
@@ -91,6 +104,17 @@ def make_menu_pages(src, dest, menu_links):
 
         with open(os.path.join(src, link)) as f:
             menu_soup = BeautifulSoup(f.read())
+        for link_tag in menu_soup.find_all('a'):
+            link = link_tag.get('href')
+            elink = link_tag.get('href')
+            if link.startswith("http://"):    
+                if (link  in downloadablelinks):
+                    link = link[6:]
+                    link_tag['href'] = 2*"../" + "../external" + link
+                elif (link in activeallexternallinks):
+                    link_tag['href'] = 'javascript:var c=confirm("Do You wish to access internet?");if(c==true){window.location="'+elink+'";}'
+                else: 
+                    link_tag['href'] = 'javascript:alert("Link is dead");'
         attrs = {"href": "index.php.html"}
         for menu_link_tag in menu_soup.find_all('a', attrs=attrs):
             menu_link_tag['href'] = "../../"
