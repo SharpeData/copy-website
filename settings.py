@@ -7,7 +7,7 @@ import os
 SRC = os.path.join("..", "vlab")
 
 # Path to folder in which modified website is to be deployed
-DEST = os.path.join("..", "website5")
+DEST = os.path.join("..", "website12")
 
 # Path to folder containing the css files with respect to src
 TARGET_CSS = os.path.join("theme", "iitg", "css")

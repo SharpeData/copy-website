@@ -14,6 +14,22 @@ from helpers import link_is_appropriate, get_unique_name, make_new_directory
 from helpers import save_html, print_progress, print_error_when_directly_run
 from helpers import parse_images, parse_menu_links, parse_css_links
 
+file1=open("downloadablelinks.txt", "r")
+downloadablelinks=file1.readlines()
+file1.close()
+downloadablelinks = [word.rstrip("\n") for word in downloadablelinks]        
+file2=open("activedownloadablelinks.txt", "r")
+activedownloadablelinks=file2.readlines()
+file2.close()
+activedownloadablelinks = [word.rstrip("\n") for word in activedownloadablelinks]
+file3=open("activeallexternallinks.txt", "r")
+activeallexternallinks=file3.readlines()
+file3.close()
+activeallexternallinks = [word.rstrip("\n") for word in activeallexternallinks]
+
+
+
+
 def parse_links(names, src, menu_links, input_path, output_path,
                 layer_level, recursion_depth):
     """
@@ -32,11 +48,32 @@ def parse_links(names, src, menu_links, input_path, output_path,
     parse_images(soup, layer_level)
     save_html(soup, html_path)
 
+    bread_tag = soup.find("div", attrs={"class": "breadcum"})
+    bread_count = 0
+    if bread_tag:
+        if bread_tag.find_all('a'):
+            for link_tag in reversed(bread_tag.find_all('a')):
+                link_tag['href'] = bread_count*"../"
+                if layer_level is 3:
+                    link_tag['href'] = bread_count*"../" + "../"
+                bread_count = bread_count + 1
+                
     for link_tag in soup.find_all('a'):
         parse_menu_links(layer_level, link_tag, menu_links)
         link = link_tag.get('href')
         if link is None:
             continue
+        elink = link_tag.get('href')
+        if link.startswith("http://"):    
+            if (link  in downloadablelinks):
+                link = link[6:]
+                link_tag['href'] = layer_level*"../" + "../external" + link
+                if layer_level is 3:
+                    link_tag['href'] = 4*"../" + "../external" + link
+            elif (link in activeallexternallinks):
+                link_tag['href'] = 'javascript:var c=confirm("Do You wish to access internet?");if(c==true){window.location="'+elink+'";}'
+            else: 
+                link_tag['href'] = 'javascript:alert("Link is dead");'    
         if link_is_appropriate(link, layer_level):
             name = link_tag.string.strip(" \t\n\r").partition(' ')[0].lower()
             name = get_unique_name(name, names)
@@ -52,6 +89,9 @@ def parse_links(names, src, menu_links, input_path, output_path,
                             output_path=new_output_path,
                             layer_level=layer_level + 1,
                             recursion_depth=recursion_depth - 1)
+        if (layer_level is 1 and link.count('&') is 3):
+            name2 = link_tag.string.strip(" \t\n\r").partition(' ')[0].lower()
+            link_tag['href'] = name + "/" + name2 + "/theory"         
         parse_last_layer(link_tag, names, src, menu_links, input_path,
                          output_path, layer_level, recursion_depth)
     save_html(soup, html_path)
